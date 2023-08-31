@@ -81,10 +81,16 @@ function IOUCurrencySelection(props) {
             // When we refresh the web, the money request route gets cleared from the navigation stack.
             // Navigating to "backTo" will result in forward navigation instead, causing disruption to the currency selection.
             // To prevent any negative experience, we have made the decision to simply close the currency selection page.
-            if (_.isEmpty(backTo) || props.navigation.getState().routes.length === 1) {
+            const currentState = props.navigation.getState();
+            const currentRoutes = currentState.routes;
+            const currentIndex = currentState.index;
+            if (_.isEmpty(backTo) || currentRoutes.length === 1 || currentIndex === 0) {
                 Navigation.goBack();
             } else {
-                Navigation.navigate(`${props.route.params.backTo}?currency=${option.currencyCode}`);
+                const prevState = currentRoutes[currentIndex - 1].state;
+                prevState && prevState.type === 'tab'
+                    ? props.navigation.navigate(prevState.routeNames[prevState.index], {iouType, reportID, currency: option.currencyCode})
+                    : Navigation.navigate(`${props.route.params.backTo}?currency=${option.currencyCode}`);
             }
         },
         [props.route, props.navigation],
